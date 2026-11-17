@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Artist Portfolio | Environment & Lighting</title>
+    <style>
+        /* --- 全局设置 --- */
+        :root {
+            --bg-color: #0b1116;
+            --accent-color: #00d2ff;
+            --text-main: #ffffff;
+            --text-secondary: #a0aab5;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        ul { list-style: none; }
+
+        /* --- 导航栏 --- */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(11, 17, 22, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--accent-color);
+        }
+
+        .nav-links { display: flex; gap: 30px; }
+
+        .nav-links a:hover { color: var(--accent-color); }
+
+        .cta-btn {
+            padding: 10px 24px;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        .cta-btn:hover {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        /* --- Hero 区域 (封面) --- */
+        header {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: linear-gradient(to bottom, rgba(11,17,22,0.3), var(--bg-color)),
+                        url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            text-align: center;
+        }
+
+        .hero-content {
+            z-index: 2;
+            max-width: 800px;
+            padding: 20px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-tag {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            display: block;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #fff, #a5f3fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+
+        /* --- 作品展示区 --- */
+        section { padding: 80px 50px; }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 50px;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .gallery-grid + .section-title { margin-top: 100px; }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+
+        /* 卡片样式 */
+        .project-card {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .project-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .project-card:hover {
+            transform: scale(1.02);
+            z-index: 10;
+        }
+
+        .project-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .project-card:hover img { transform: scale(1.1); }
+
+        /* 覆盖层信息 */
+        .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 30px 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: 0.4s ease;
+        }
+
+        .project-card:hover .card-overlay,
+        .project-card:focus-within .card-overlay {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .card-tags {
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 特殊布局：全宽展示 */
+        .featured-work {
+            grid-column: 1 / -1;
+            aspect-ratio: 21/9;
+        }
+
+        /* --- 关于与联系 --- */
+        .about-content {
+            max-width: 800px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .about-content p + p { margin-top: 1.2rem; }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .skills span {
+            padding: 8px 16px;
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            background: var(--card-bg);
+            font-size: 0.9rem;
+            color: var(--accent-color);
+        }
+
+        /* --- 页脚 --- */
+        footer {
+            padding: 50px;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+        }
+
+        footer a { color: var(--accent-color); }
+        footer p { margin-top: 10px; font-size: 0.9rem; }
+
+        /* --- 动画关键帧 --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            nav { padding: 20px; }
+            .nav-links { display: none; }
+            section { padding: 60px 20px; }
+            .gallery-grid { grid-template-columns: 1fr; }
+            .featured-work { aspect-ratio: 16/9; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .hero-content { animation: none; }
+            .project-card { opacity: 1; transform: none; transition: none; }
+            .project-card img { transition: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 导航栏 -->
+    <nav>
+        <div class="logo">ARTIST.PORTFOLIO</div>
+        <ul class="nav-links">
+            <li><a href="#work">Works</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <a href="mailto:yourname@email.com" class="cta-btn">Let's Talk</a>
+    </nav>
+
+    <!-- 头部封面 -->
+    <header>
+        <div class="hero-content">
+            <span class="hero-tag">Game - 3D - Lighting - Design</span>
+            <h1>Creating Immersive Worlds<br>Through Light & Detail</h1>
+            <p class="hero-desc">专注环境艺术与关卡设计，探索虚拟世界的视觉叙事。</p>
+            <a href="#work" class="cta-btn" style="background:var(--accent-color); color:#000;">View Projects</a>
+        </div>
+    </header>
+
+    <!-- 作品集区域 -->
+    <section id="work">
+
+        <!-- 分类 1: 宏大场景 -->
+        <div class="section-title">Featured Environments <span style="font-size:0.9rem; color:var(--text-secondary)">01</span></div>
+        <div class="gallery-grid">
+
+            <!-- 作品 1 (全宽展示) -->
+            <div class="project-card featured-work" tabindex="0">
+                <img src="images/egypt-river-kingdom.png" alt="Ancient River Kingdom - 埃及风格河流古城全景">
+                <div class="card-overlay">
+                    <div class="card-title">Ancient River Kingdom</div>
+                    <div class="card-tags">Unreal Engine 5 / Landscape / Lighting</div>
+                </div>
+            </div>
+
+            <!-- 作品 2 -->
+            <div class="project-card" tabindex="0">
+                <img src="images/egypt-golden-sphinx.png" alt="Temple of the Golden Sphinx - 金色狮身人面像神庙">
+                <div class="card-overlay">
+                    <div class="card-title">Temple of the Golden Sphinx</div>
+                    <div class="card-tags">Environment Art / Sculpting / Lighting</div>
+                </div>
+            </div>
+
+            <!-- 作品 3 -->
+            <div class="project-card" tabindex="0">
+                <img src="images/floating-citadel.png" alt="The Floating Citadel - 奇幻水上城堡">
+                <div class="card-overlay">
+                    <div class="card-title">The Floating Citadel</div>
+                    <div class="card-tags">Level Design / Architecture</div>
+                </div>
+            </div>
+
+            <!-- 作品 4 -->
+            <div class="project-card" tabindex="0">
+                <img src="images/citadel-over-lake.png" alt="Citadel Over the Lake - 城堡湖面视角">
+                <div class="card-overlay">
+                    <div class="card-title">Citadel Over the Lake</div>
+                    <div class="card-tags">World Building / Composition</div>
+                </div>
+            </div>
+
+            <!-- 作品 5 -->
+            <div class="project-card" tabindex="0">
+                <img src="images/sector7-industrial.png" alt="Sector 7 Industrial Zone - 赛博朋克工业街区">
+                <div class="card-overlay">
+                    <div class="card-title">Sector 7 Industrial Zone</div>
+                    <div class="card-tags">Sci-Fi / Hard Surface / Atmosphere</div>
+                </div>
+            </div>
+
+            <!-- 作品 6 -->
+            <div class="project-card" tabindex="0">
+                <img src="images/sector7-skyline.png" alt="Sector 7 Skyline - 赛博朋克城市天际线">
+                <div class="card-overlay">
+                    <div class="card-title">Sector 7 Skyline</div>
+                    <div class="card-tags">Kitbashing / Volumetrics / Scale</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分类 2: 室内与文化 -->
+        <div class="section-title">Interior & Cultural Details <span style="font-size:0.9rem; color:var(--text-secondary)">02</span></div>
+        <div class="gallery-grid">
+
+            <!-- 作品 7 -->
+            <div class="project-card" tabindex="0">
+                <img src="images/dynasty-hall.png" alt="Dynasty Hall - 中式古风室内大厅">
+                <div class="card-overlay">
+                    <div class="card-title">Dynasty Hall</div>
+                    <div class="card-tags">Interior Design / Raytracing / Props</div>
+                </div>
+            </div>
+
+            <!-- 作品 8 -->
+            <div class="project-card" tabindex="0">
+                <img src="images/scholars-desk.png" alt="The Scholar's Desk - 中式书房细节特写">
+                <div class="card-overlay">
+                    <div class="card-title">The Scholar's Desk</div>
+                    <div class="card-tags">Storytelling / Close-up</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于与联系 -->
+    <section id="about" style="background: rgba(255,255,255,0.02);">
+        <div class="section-title">About Me</div>
+        <div class="about-content">
+            <p>你好，我是一名专注于环境艺术与灯光设计的 3D 美术师。我热爱用光影、材质与空间构图去构建有叙事感的游戏世界——从宏大的古代河流王国、漂浮的奇幻城堡，到充满机械密度的赛博都市，再到一束晨光穿过窗棂的中式书房。</p>
+            <p>我的工作流覆盖从概念参考、关卡灰盒、资产制作到最终灯光渲染的完整环节。比起单纯还原现实，我更关注场景如何"讲故事"：一条水岸、一盏灯笼、一道投影，都是引导玩家情绪的线索。</p>
+            <div class="skills">
+                <span>Unreal Engine 5</span>
+                <span>Blender</span>
+                <span>Substance 3D</span>
+                <span>Marmoset Toolbag</span>
+                <span>Environment Art</span>
+                <span>Lighting & Lookdev</span>
+                <span>Level Design</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer id="contact">
+        <div class="logo" style="font-size:1.2rem; margin-bottom:10px;">ARTIST.PORTFOLIO</div>
+        <p>© <span id="year">2026</span> 3D Artist Portfolio · 期待与你合作：<a href="mailto:yourname@email.com">yourname@email.com</a></p>
+    </footer>
+
+    <noscript><style>.project-card{opacity:1;transform:none}</style></noscript>
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+
+        document.querySelectorAll('.project-card').forEach(card => observer.observe(card));
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>
